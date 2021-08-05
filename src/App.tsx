@@ -1,26 +1,32 @@
+import {Provider} from "mobx-react";
 import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import TodoComponent from "./Todo/TodoComponent";
+import TodoStore from "./Todo/TodoStore"
+import TodoSummary from "./Todo/TodoSummary";
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+class App extends React.Component<{},{}> {
+  private todoStore: TodoStore;
+
+  constructor(props: {} | Readonly<{}>){
+    super(props);
+    this.todoStore = new TodoStore();
+  }
+
+  componentDidMount(){
+    
+  }
+
+  render(){
+    return (
+    <div className="container w-80">
+      <h1>TodoApp</h1>
+      <Provider TodoStore={this.todoStore}>
+        <TodoComponent></TodoComponent>
+        <TodoSummary></TodoSummary>
+      </Provider>
     </div>
   );
+}
 }
 
 export default App;
