@@ -1,90 +1,47 @@
-import { inject, observer } from "mobx-react";
-import * as React from "react";
+import {action} from "mobx";
+import { observer, } from "mobx-react";
+import React, {useState, useContext} from "react";
+import {v4 as uuidv4} from "uuid";
 import TodoList from "./TodoList";
-import TodoStore from "./TodoStore";
+import {TodoStoreContext} from "./TodoStore";
 
-@inject("TodoStore")
-@observer
-export default class TodoComponent extends React.Component<
-  { TodoStore?: TodoStore },
-  {
-    Title: string;
-    Completed: boolean;
-    Id: number|null;
-    UserId: number;
-    todoError: Error | null;
-  }
-> {
-  constructor(props: { TodoStore?: TodoStore; } | Readonly<{ TodoStore?: TodoStore; }>) {
-    super(props);
-    this.state = {
-      Title: "",
-      Completed: false,
-      Id: 1,
-      UserId: 1,
-      todoError: null,
-    };
-    this.addTodo = this.addTodo.bind(this);
-    this.onTitleChange = this.onTitleChange.bind(this);
-    this.onIsCompleteChange = this.onIsCompleteChange.bind(this);
-    this.onUserIdChange = this.onUserIdChange.bind(this);
-  }
+   
+  const TodoComponent  = () => {
+    let [title, setTitle] = useState("");
+    let [completed, setCompleted] = useState(false);
+    
+    const todoSt = useContext(TodoStoreContext);    
 
-  async addTodo(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    await this.props.TodoStore?.addTodo(
-      this.state.Title,
-      (this.props.TodoStore.Todos.length+1),
-      this.state.UserId,
-      this.state.Completed
-    );
-    this.setState({ Title: "", Completed: false, UserId: 1, Id:1});
-  }
-
-  onTitleChange(event: React.ChangeEvent<HTMLInputElement>) {
-      console.log(event.target.value)
-    this.setState({ Title: event.target.value });
-  }
-
-  onIsCompleteChange(event: React.ChangeEvent<HTMLInputElement>) {
-    this.setState({ Completed: event.target.checked });
-  }
-
-  onUserIdChange(event: React.ChangeEvent<HTMLInputElement>) {
-    this.setState({ UserId: parseInt(event.target.value) });
-  }
-
-  render() {
-    let todos = this.props.TodoStore?.getTodos() || [];
-
+    const addTodo = (e: React.FormEvent) =>{
+      e.preventDefault();
+      todoSt.addTodo({title, completed, id:uuidv4()});
+      setTitle("");
+      setCompleted(false);
+    }
+  
     return (
       <div className="container">
-        {this.state.todoError?.message ? (
-          <div className="alert alert-danger" role="alert">
-            Some error occured
-          </div>
-        ) : null}
-        <h2>Create Todo List</h2>
-        <form onSubmit={this.addTodo}>
+        <h2>Create new todo</h2>
+        <form>
             <div className="form-group">
                 <label htmlFor="title">Todo</label>
-                <input id="title" type="text" className="form-control" placeholder="Todo name"/>
+                <input id="title" type="text" className="form-control" placeholder="Todo name" onChange={(e)=>setTitle(e.currentTarget.value)} value={title}/>
             </div>
-            <div className="form-group">
-                <label htmlFor="completed">Email address</label>
-                <input id="completed" type="checkbox" className="form-control"/>
+            <div className="form-check">
+               <input id="completed" type="checkbox" className="form-check-input" onChange={()=>setCompleted(!completed)} checked={completed}/>
+               <label className="form-check-label" htmlFor="completed">Completed? </label>
             </div>
-            <div className="form-group">
-                <label htmlFor="userId">UserId</label>
-                <input id="userId" type="text" className="form-control"/>
-            </div>
-            <button type="submit" className="btn btn-primary">Submit</button>
+            
+            <button type="submit" onClick={action(e=>addTodo(e))} className="btn btn-primary">Submit</button>
         </form>
         <hr></hr>
         <div className="mt-20">
-          <TodoList Todos={todos} />
+          
+          
+        <TodoList/>
         </div>
       </div>
     );
   }
-}
+
+export default observer(TodoComponent);

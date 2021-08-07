@@ -1,50 +1,58 @@
-import { action, configure, observable } from "mobx";
-import TodoModel from "./TodoModel";
+import { makeObservable, action, observable } from "mobx";
+import { createContext } from "react";
+import Todo from "./TodoModel";
 
-configure({ enforceActions: "always" });
+class TodoStore {
+    todos: Todo[] = observable([
+        { id: "papdowapopd21)@@_", completed: false, title: "pet dog" }
+    ]);
 
-export default class ToDoStore {
-    @observable Todos: TodoModel[] = [];
-
-    private todoApi = "https://jsonplaceholder.typicode.com/todos";
-
-    @action.bound async init() {
-        let response = await fetch(this.todoApi);
-        let newTodos: TodoModel[] = await response.json();
-        this.addTodoStore(newTodos);
-    }
-
-    @action.bound addTodoStore(Todos: TodoModel[]) {
-        for (let todo of Todos) {
-            this.Todos.push(todo);
+    constructor() {
+        makeObservable(this, {
+            todos: observable,
+            getTodos: action,
+            addTodo: action,
+            toggleTodo: action,
+            editTodo: action,
         }
+        )
     }
 
-    @action.bound getTodos() {
-        return this.Todos;
+    getTodos() {
+        return this.todos;
     }
 
-    @action.bound async addTodo(title: string, id: number, userId: number, completed: boolean) {
-        await fetch(this.todoApi, {
-            method: "POST",
-            body:
-                JSON.stringify({
-                    title,
-                    id,
-                    userId,
-                    completed
-                }),
+    addTodo(todo: Todo) {
+        console.log("todo", todo)
+        return this.todos.push(todo);
+    };
 
-            headers: {
-                'Content-type': 'application/json; charset=UTF-8',
+    changeBool(result: boolean) {
+        return !result;
+    }
+
+    toggleTodo(id: string) {
+        console.log("TOGLE")
+        this.todos.filter(el => {
+            if (el.id === id) {
+                el.completed = this.changeBool(el.completed);
             }
+            return el.completed;
         })
-            .then((response) => response.json())
-            .then((json) => this.addNewTodoToStore(json));
     }
 
-    @action.bound async addNewTodoToStore(todo: TodoModel) {
-        this.Todos.push(todo);
+    editTodo(todo: Todo) {
+        this.todos.filter(el => {
+            if (todo.id === el.id) {
+                return el.title = todo.title;
+            }
+            return el;
+        })
+    }
+
+    deleteTodo(id: string) {
+        this.todos.splice(this.todos.findIndex(el => el.id === id), 1);
     }
 
 }
+export const TodoStoreContext = createContext(new TodoStore());
